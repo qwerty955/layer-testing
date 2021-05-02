@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/a-color-picker@1.2.1/dist/acolorpicker.min.js"></script>
+    <link rel="shortcut icon" href="https://cdn.iconscout.com/icon/free/png-512/l-character-alphabet-letter-32862.png" type="image/x-icon">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body
+        {
+  color: #cdcdcd;
+  font-family: "Avenir Next", "Avenir", sans-serif;
+        }
+        canvas
+        {
+            display: block;
+            cursor: crosshair;
+        }
+        #menuToggle
+{
+  display: block;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  
+  z-index: 1;
+  
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#menuToggle li
+{
+  color: #232323;
+  transition: color 0.3s ease;
+}
+
+#menuToggle li:hover
+{
+  color: tomato;
+  transition: all 1s;
+}
+#menuToggle a:hover
+{
+  color: tomato;
+  transition: all 1s;
+}
+#dow{
+  color: black;
+  text-decoration: none;
+  transition: all 1s;
+}
+#menuToggle .inp
+{
+  display: block;
+  width: 40px;
+  height: 32px;
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 2;
+  -webkit-touch-callout: none;
+}
+#menuToggle .s
+{
+  display: block;
+  width: 33px;
+  height: 4px;
+  margin-bottom: 5px;
+  position: relative;
+  
+  background: #000000;
+  border-radius: 3px;
+  
+  z-index: 1;
+  
+  transform-origin: 4px 0px;
+  
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              opacity 0.55s ease;
+}
+
+#menuToggle .s:first-child
+{
+  transform-origin: 0% 0%;
+}
+
+#menuToggle .s:nth-last-child(2)
+{
+  transform-origin: 0% 100%;
+}
+#menuToggle input:checked ~ .s
+{
+  opacity: 1;
+  transform: rotate(45deg) translate(-2px, -1px);
+  background: #232323;
+}
+#menuToggle input:checked ~ .s:nth-last-child(3)
+{
+  opacity: 0;
+  transform: rotate(0deg) scale(0.2, 0.2);
+}
+#menuToggle input:checked ~ .s:nth-last-child(2)
+{
+  transform: rotate(-45deg) translate(0, -1px);
+}
+#menu
+{
+  position: absolute;
+  width: 300px;
+  margin: -100px 0 0 -50px;
+  padding: 50px;
+  padding-top: 125px;
+  overflow: auto;
+  background: #ededed;
+  list-style-type: none;
+  -webkit-font-smoothing: antialiased;
+  transform-origin: 0% 0%;
+  transform: translate(-100%, 0);
+  
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+}
+
+#menu li
+{
+  padding: 10px 0;
+  font-size: 22px;
+}
+
+#menuToggle input:checked ~ ul
+{
+  transform: none;
+}
+.slider 
+{
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb 
+{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb
+ {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #04AA6D;
+  cursor: pointer;
+}
+.rp
+{
+  display: inline-flex;
+  line-height: 15px;
+}
+.size
+{
+  background: none;
+  width: 28px;
+  border: none;
+  padding: 2px;
+}
+    </style>
+    <title>Layer</title>
+</head>
+<body>
+    <nav role="navigation">
+        <div id="menuToggle">
+          <input type="checkbox" class="inp"/>
+          <span class="s"></span>
+          <span class="s"></span>
+          <span class="s"></span>
+          <ul id="menu">
+            <li><div class="picker" 
+                acp-color="#EFE9E7">
+           </div></li>
+            <li>
+                <div class="slidecontainer">
+                    <p class="rp">Size:<span class="size" id="size">6</span><input type="range" min="1" max="20" value="6" class="slider" id="myRange" onchange="c(this.value)"></p>
+                  </div>
+            </li>
+            <li id="cle">clear</li>
+            <li><a id="dow">download canvas</a></li>
+            <li>created by Sabyr</li>
+          </ul>
+        </div>
+      </nav>
+    <canvas id="canvas">
+
+    </canvas>
+    <script>
+        // canvas
+        let canv = document.querySelector("canvas");
+        const ctx = canv.getContext("2d");
+        canv.width=window.innerWidth;
+        canv.height=window.innerHeight;
+
+        // virables
+        let imd = false; // on mouse down
+        let color2 = "#000000";
+        // ColorPicker
+        AColorPicker.from('.picker').on('change', (picker, color) => {
+          color2 = color;
+        });
+        // socket
+        let sock = new WebSocket("wss://stormy-meadow-67394.herokuapp.com/");
+        // heroku: https://stormy-meadow-67394.herokuapp.com/;
+        // zeet: https://qwerty955-nodelayer.zeet.app/; zeetдействует 24 часа
+        canv.addEventListener("mousedown",(e)=>{
+            ctx.lineWidth = document.getElementById('myRange').value*2;
+            let x = e.offsetX-3;
+            let y = e.offsetY-3;
+            let json = {
+                x: x,
+                y: y,
+                color: color2,
+                mouse: "mousedown",
+                size: document.getElementById('myRange').value
+            }
+            let js = JSON.stringify(json);
+            sock.send(js);
+            ctx.beginPath();
+            imd=true;
+        });
+        
+        canv.addEventListener("mouseup",(e)=>{
+            ctx.lineWidth = document.getElementById('myRange').value*2;
+            imd=false;
+            ctx.beginPath();
+            let x = e.offsetX-3;
+            let y = e.offsetY-3;
+            let json = {
+                x: x,
+                y: y,
+                color: color2,
+                mouse: "mouseup",
+                size: document.getElementById('myRange').value
+            }
+            let js = JSON.stringify(json);
+            sock.send(js);
+        });
+        // здесь проблема в этом событии и происходит отрисовка
+        // отрисовка
+        canv.addEventListener("mousemove",(e)=>{
+            if (imd === true) {
+              var json = {
+                x: e.offsetX-3,
+                y: e.offsetY-3,
+                color: color2,
+                mouse: "mousemove",
+                size: document.getElementById('myRange').value
+              }
+
+              var jsswer = JSON.stringify(json);
+                               
+              let x = e.offsetX;
+              let y = e.offsetY;
+
+              ctx.fillStyle = color2;
+              ctx.strokeStyle = color2;
+              ctx.lineWidth = document.getElementById('myRange').value*2;
+              ctx.lineTo(x, y);
+              ctx.stroke();
+
+              ctx.beginPath();
+                
+              ctx.arc(x, y, document.getElementById('myRange').value, 0, 2 * Math.PI);
+              ctx.fill();
+                
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+            
+              sock.send(jsswer);   
+            }
+        });
+        // socket
+        sock.onopen=()=>{
+            alert("server open")
+        };
+        sock.onerror=()=>{
+            alert("error")
+        }
+        // здесь обрабатываются рисунки других пользователей
+        sock.onmessage=(e)=>{
+            let jsom = JSON.parse(e.data);
+            if (jsom.mouse==="mouseup"||jsom.mouse==="mousedown"){
+                ctx.beginPath();
+            }
+            ctx.fillStyle = jsom.color;
+            ctx.strokeStyle = jsom.color;
+            ctx.lineWidth = jsom.size*2;
+            ctx.lineTo(jsom.x, jsom.y);
+            ctx.stroke();
+
+            ctx.beginPath();
+                
+            ctx.arc(jsom.x, jsom.y, jsom.size, 0, 2 * Math.PI);
+            ctx.fill();
+                
+            ctx.beginPath();
+            ctx.moveTo(jsom.x, jsom.y);
+        }
+        // size
+        function c (v) {
+            document.getElementById("size").innerHTML=v;
+        }
+        // clear
+        document.getElementById("cle").addEventListener("click",()=>{
+          ctx.clearRect(0, 0, canv.width, canv.height);
+        });
+        // download
+        document.getElementById('dow').addEventListener("click",
+          function() {
+			      downloadCanvas(this, 'canvas', 'layerIMG.png');
+            console.log(this);
+		      }
+        );
+        function downloadCanvas(link, canvas, filename) {
+			    link.href = document.getElementById(canvas).toDataURL();
+			    link.download = filename;
+		    }
+    </script>
+</body>
+</html>
